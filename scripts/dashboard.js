@@ -51,14 +51,14 @@ function registrarRetiradaDashboard(encomendaId) {
     return;
   }
 
-  const porteiroRetirada = sessionStorage.getItem('recebaUser') || 'porteiro-logado';
+  const porteiroRetirada = sessionStorage.getItem('recebaUser') || 'Admin';
   const dataRetirada = new Date().toISOString();
 
   encomenda.status = 'retirada';
   encomenda.dataRetirada = dataRetirada;
   encomenda.porteiroRetirada = porteiroRetirada;
 
-  const historicoRelativo = memoryStore.historico.find((item) => String(item.uuid) === String(encomenda.id))
+  const historicoRelativo = memoryStore.historico.find((item) => String(item.id) === String(encomenda.id))
 
   if (historicoRelativo) {
     historicoRelativo.status = 'retirada';
@@ -68,12 +68,12 @@ function registrarRetiradaDashboard(encomendaId) {
     historicoRelativo.dataRetirada = dataRetirada;
   } else {
     memoryStore.historico.push({
-      uuid: String(encomenda.id),
+      id: Number(encomenda.id),
       cod: encomenda.codigo || encomenda.cod || '',
       empresa: encomenda.empresa || '',
       entregador: encomenda.entregador || '',
       morador_nome: encomenda.nomeMorador || encomenda.destinatario || '',
-      porteiro_nome: encomenda.porteiroRegistro || encomenda.porteiroRegistro || 'porteiro-logado',
+      porteiro_nome: encomenda.porteiroRegistro || encomenda.porteiroRegistro || 'Admin',
       retirada_porteiro_nome: porteiroRetirada,
       porteiro_retirada: porteiroRetirada,
       status: 'retirada',
