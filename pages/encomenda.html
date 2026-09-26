@@ -1,0 +1,52 @@
+<div class="page-header mb-4">
+  <h2><i class="bi bi-box-seam mr-2"></i>Registrar Encomenda</h2>
+  <small class="text-muted">Cadastro rápido de entrega</small>
+</div>
+
+<div class="card form-card">
+  <div class="card-body">
+    <form data-form-name="encomenda">
+      <div class="row">
+        <div class="col-md-4 form-group">
+          <label for="destinatario">Nome do morador</label>
+          <input type="text" class="form-control" id="destinatario" name="destinatario" placeholder="Buscar pelo nome" required />
+        </div>
+        <div class="col-md-4 form-group">
+          <label for="bloco">Bloco/Torre</label>
+          <input type="text" class="form-control" id="bloco" name="bloco" placeholder="Ex: A" required />
+        </div>
+        <div class="col-md-4 form-group">
+          <label for="unidade">Apartamento</label>
+          <input type="text" class="form-control" id="unidade" name="unidade" placeholder="Ex: 101" required />
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-12 form-group">
+          <button type="button" class="btn btn-outline-primary" id="searchMoradorButton">
+            <i class="bi bi-search mr-2"></i>Buscar morador
+          </button>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-4 form-group">
+          <label for="codigo">Código</label>
+          <input type="text" class="form-control" id="codigo" name="codigo" placeholder="Código da encomenda" required disabled />
+        </div>
+        <div class="col-md-4 form-group">
+          <label for="empresa">Empresa</label>
+          <input type="text" class="form-control" id="empresa" name="empresa" placeholder="Empresa" required disabled />
+        </div>
+        <div class="col-md-4 form-group">
+          <label for="entregador">Entregador</label>
+          <input type="text" class="form-control" id="entregador" name="entregador" placeholder="Entregador" required disabled />
+        </div>
+      </div>
+
+      <input type="hidden" name="moradorId" />
+
+      <button type="submit" class="btn btn-primary mt-3" id="encomendaSubmit" disabled>Salvar encomenda</button>
+    </form>
+  </div>
+</div>

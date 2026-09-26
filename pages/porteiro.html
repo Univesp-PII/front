@@ -1,0 +1,31 @@
+<div class="page-header mb-4">
+  <h2><i class="bi bi-person-badge mr-2"></i>Cadastrar Porteiro</h2>
+  <small class="text-muted">Cadastro de usuários da portaria</small>
+</div>
+
+<div class="card form-card">
+  <div class="card-body">
+    <form data-form-name="porteiro" class="porteiro-form">
+      <div class="row align-items-end">
+        <div class="col-md-4 form-group">
+          <label for="nomePorteiro">Nome</label>
+          <input type="text" class="form-control" id="nomePorteiro" name="nomePorteiro" placeholder="Nome do porteiro" required />
+        </div>
+        <div class="col-md-4 form-group">
+          <label for="emailPorteiro">Email</label>
+          <input type="email" class="form-control" id="emailPorteiro" name="emailPorteiro" placeholder="porteiro@email.com" required />
+        </div>
+        <div class="col-md-4 form-group">
+          <label for="senhaPorteiro">Senha</label>
+          <input type="password" class="form-control" id="senhaPorteiro" name="senhaPorteiro" placeholder="Crie uma senha" required />
+        </div>
+      </div>
+
+      <div class="form-actions d-flex justify-content-end mt-3">
+        <button type="submit" class="btn btn-primary btn-submit-porteiro">
+          <i class="bi bi-person-plus mr-2"></i>Cadastrar porteiro
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
