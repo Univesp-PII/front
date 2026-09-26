@@ -13,6 +13,16 @@ function handleLogin(event) {
     return;
   }
 
+  const loggedPorteiro =
+    window.memoryStore && Array.isArray(window.memoryStore.porteiro)
+      ? window.memoryStore.porteiro[0]
+      : null;
+
+  sessionStorage.setItem(
+    "recebaUser",
+    loggedPorteiro ? loggedPorteiro.nome || loggedPorteiro.nomePorteiro : "Admin"
+  );
+
   showToast("Login realizado com sucesso.", "success");
 
   setTimeout(() => {
