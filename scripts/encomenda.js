@@ -18,6 +18,25 @@ function clearMoradorOptions(form) {
   }
 }
 
+function setMoradorFieldState(form, isValid) {
+  const fields = form.querySelectorAll('#destinatario, #bloco, #unidade');
+
+  fields.forEach((field) => {
+    field.classList.remove('is-invalid');
+
+    if (isValid) {
+      field.classList.add('is-valid');
+      field.style.borderColor = '#28a745';
+      field.style.boxShadow = '0 0 0 0.2rem rgba(40, 167, 69, 0.15)';
+      return;
+    }
+
+    field.classList.remove('is-valid');
+    field.style.borderColor = '';
+    field.style.boxShadow = '';
+  });
+}
+
 function applyMoradorToForm(form, morador) {
   const codeField = form.querySelector('#codigo');
   const empresaField = form.querySelector('#empresa');
@@ -44,6 +63,7 @@ function applyMoradorToForm(form, morador) {
 
   if (submitButton) submitButton.disabled = false;
 
+  setMoradorFieldState(form, true);
   clearMoradorOptions(form);
   showToast('Morador encontrado. Dados preenchidos com sucesso.', 'success');
 }
@@ -53,17 +73,26 @@ function renderMoradorOptions(form, matches) {
 
   const container = document.createElement('div');
   container.id = 'moradorOptions';
-  container.className = 'mt-3';
+  container.className = 'mt-3 p-3 border rounded shadow-sm';
+  container.style.backgroundColor = '#fff5f5';
+  container.style.borderColor = '#dc3545';
 
   const title = document.createElement('small');
-  title.className = 'd-block text-muted mb-2';
-  title.textContent = 'Selecione o morador:';
+  title.className = 'd-block text-danger font-weight-bold mb-2';
+  title.textContent = 'Selecione o morador correto:';
   container.appendChild(title);
 
   matches.forEach((morador) => {
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'btn btn-sm btn-outline-primary mr-2 mb-2';
+    btn.className = 'btn btn-block text-left mb-2';
+    btn.style.backgroundColor = '#dc3545';
+    btn.style.color = '#fff';
+    btn.style.border = '1px solid #c82333';
+    btn.style.borderRadius = '8px';
+    btn.style.padding = '10px 12px';
+    btn.style.fontWeight = '600';
+    btn.style.boxShadow = '0 2px 6px rgba(220, 53, 69, 0.15)';
     btn.textContent = `${morador.nome || morador.nomeMorador} - ${morador.bloco || morador.blocoMorador}/${morador.apartamento || morador.unidade}`;
     btn.addEventListener('click', () => {
       applyMoradorToForm(form, morador);
@@ -71,10 +100,13 @@ function renderMoradorOptions(form, matches) {
     container.appendChild(btn);
   });
 
-  const formBody = form.querySelector('.card-body');
-  if (formBody) {
-    formBody.appendChild(container);
+  const submitButton = form.querySelector('#encomendaSubmit');
+  if (submitButton) {
+    form.insertBefore(container, submitButton);
+    return;
   }
+
+  form.appendChild(container);
 }
 
 function findMoradorBySearch(form) {
@@ -96,8 +128,8 @@ function findMoradorBySearch(form) {
     });
 
     if (matches.length > 1) {
+      setMoradorFieldState(form, false);
       renderMoradorOptions(form, matches);
-      showToast('Mais de um morador encontrado. Selecione uma opção.', 'success');
       return { multiple: true, matches };
     }
 
@@ -141,30 +173,28 @@ function setupEncomendaSearchFlow(form) {
     submitButton.disabled = true;
   }
 
-  if (!searchButton) {
-    return;
-  }
-
-  searchButton.addEventListener('click', () => {
+  const resolveMoradorSearch = () => {
     const result = findMoradorBySearch(form);
 
-    if (!result || (result && result.multiple === true && result.matches && result.matches.length > 1)) {
-      if (!result) {
-        showToast('Morador não encontrado. Cadastre o morador antes da encomenda.', 'error');
-      }
-
+    if (result && result.multiple === true && result.matches && result.matches.length > 1) {
+      setMoradorFieldState(form, false);
+      renderMoradorOptions(form, result.matches);
       packageFields.forEach((field) => {
         if (field) field.disabled = true;
       });
+      if (submitButton) submitButton.disabled = true;
+      if (moradorIdField) moradorIdField.value = '';
+      return;
+    }
 
-      if (submitButton) {
-        submitButton.disabled = true;
-      }
-
-      if (moradorIdField) {
-        moradorIdField.value = '';
-      }
-
+    if (!result) {
+      setMoradorFieldState(form, false);
+      showToast('Morador não encontrado. Cadastre o morador antes da encomenda.', 'error');
+      packageFields.forEach((field) => {
+        if (field) field.disabled = true;
+      });
+      if (submitButton) submitButton.disabled = true;
+      if (moradorIdField) moradorIdField.value = '';
       return;
     }
 
@@ -184,9 +214,37 @@ function setupEncomendaSearchFlow(form) {
     if (submitButton) submitButton.disabled = false;
     if (moradorIdField) moradorIdField.value = String(morador.id);
 
+    setMoradorFieldState(form, true);
     clearMoradorOptions(form);
     showToast('Morador encontrado. Dados preenchidos com sucesso.', 'success');
-  });
+  };
+
+  if (searchButton) {
+    searchButton.addEventListener('click', resolveMoradorSearch);
+  }
+
+  if (destinatarioField) {
+    destinatarioField.addEventListener('input', () => {
+      const nomeDigitado = destinatarioField.value.trim();
+      if (nomeDigitado.length < 2) {
+        setMoradorFieldState(form, false);
+        clearMoradorOptions(form);
+        return;
+      }
+
+      const result = findMoradorBySearch(form);
+      if (result && result.multiple === true && result.matches && result.matches.length > 1) {
+        setMoradorFieldState(form, false);
+        renderMoradorOptions(form, result.matches);
+      } else if (result && !result.multiple) {
+        setMoradorFieldState(form, true);
+        clearMoradorOptions(form);
+      } else if (!result && nomeDigitado.length >= 2) {
+        setMoradorFieldState(form, false);
+        clearMoradorOptions(form);
+      }
+    });
+  }
 }
 
 async function submitEncomendaForm(form, data) {
