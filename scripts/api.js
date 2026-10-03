@@ -145,7 +145,12 @@ const apiService = {
     const response = await fetch(url, requestOptions);
 
     if (!response.ok) {
-      throw new Error(`Falha ao acessar ${resource}: ${response.status}`);
+      let message = `Falha ao acessar ${resource}: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        message = errorData?.message || errorData?.error || message;
+      } catch {}
+      throw new Error(message);
     }
 
     if (response.status === 204) {
