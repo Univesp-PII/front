@@ -54,12 +54,7 @@ function updateCurrentUserDisplay() {
     return;
   }
 
-  const fallbackUser =
-    window.memoryStore && Array.isArray(window.memoryStore.porteiro)
-      ? window.memoryStore.porteiro[0]?.nome || window.memoryStore.porteiro[0]?.nomePorteiro || 'Admin'
-      : 'Admin';
-
-  currentUser.textContent = fallbackUser;
+  currentUser.textContent = 'Admin';
 }
 
 async function renderView(viewName) {

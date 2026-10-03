@@ -1,6 +1,6 @@
 async function submitMoradorForm(form, data) {
   try {
-    const result = await sendDataApi('morador', {
+    const result = await sendDataApi('api/morador', {
       nomeMorador: String(data.get('nomeMorador')).trim(),
       blocoMorador: String(data.get('blocoMorador')).trim(),
       apartamento: String(data.get('apartamento')).trim(),

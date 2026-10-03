@@ -8,8 +8,8 @@ async function handleLogin(event) {
   submitButton.disabled = true;
 
   try {
-    apiService.setBaseUrl("http://localhost:8000/api");
-    const response = await apiService.post("auth/login", {
+    apiService.setBaseUrl("http://localhost:8000");
+    const response = await apiService.post("api/auth/login", {
       email: emailInput.value.trim(),
       password: passwordInput.value
     });
