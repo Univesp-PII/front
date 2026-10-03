@@ -16,14 +16,10 @@ function statusClassForDashboard(status) {
   return 'badge-info';
 }
 
-function renderDashboardStats() {
-  if (!memoryStore) {
-    return;
-  }
-
-  const quantidadeEncomendas = memoryStore.encomenda.length;
-  const quantidadeMoradores = memoryStore.morador.length;
-  const entregues = memoryStore.encomenda.filter((item) => normalizeDashboardText(item.status) === 'retirada').length
+function renderDashboardStats(encomendas, moradores) {
+  const quantidadeEncomendas = encomendas.length;
+  const quantidadeMoradores = moradores.length;
+  const entregues = encomendas.filter((item) => normalizeDashboardText(item.status) === 'retirada').length;
     
   const percentEntregues = quantidadeEncomendas > 0
     ? Math.round((entregues / quantidadeEncomendas) * 100)
@@ -38,62 +34,67 @@ function renderDashboardStats() {
   if (totalEntregues) totalEntregues.textContent = `${percentEntregues}%`;
 }
 
-function registrarRetiradaDashboard(encomendaId) {
-  const encomenda = memoryStore.encomenda.find((item) => String(item.id) === String(encomendaId))
-
-  if (!encomenda) {
-    showToast('Encomenda não encontrada para registrar a retirada.', 'error');
-    return;
-  }
-
-  if (normalizeDashboardText(encomenda.status).toLowerCase() === 'retirada') {
-    showToast('Esta encomenda já foi registrada como retirada.', 'success');
-    return;
-  }
-
+async function registrarRetiradaDashboard(encomendaId) {
   const porteiroRetirada = sessionStorage.getItem('recebaUser') || 'Admin';
   const dataRetirada = new Date().toISOString();
 
-  encomenda.status = 'retirada';
-  encomenda.dataRetirada = dataRetirada;
-  encomenda.porteiroRetirada = porteiroRetirada;
+  try {
+    const response = await getDataApi('api/encomenda', encomendaId);
+    const encomenda = response.data;
+    if (!encomenda) {
+      throw new Error('Encomenda não encontrada para registrar a retirada.');
+    }
 
-  const historicoRelativo = memoryStore.historico.find((item) => String(item.id) === String(encomenda.id))
+    if (normalizeDashboardText(encomenda.status).toLowerCase() === 'retirada') {
+      showToast('Esta encomenda já foi registrada como retirada.', 'success');
+      return;
+    }
 
-  if (historicoRelativo) {
-    historicoRelativo.status = 'retirada';
-    historicoRelativo.porteiro_retirada = porteiroRetirada;
-    historicoRelativo.retirada_porteiro_nome = porteiroRetirada;
-    historicoRelativo.data_retirada = dataRetirada;
-    historicoRelativo.dataRetirada = dataRetirada;
-  } else {
-    memoryStore.historico.push({
+    await sendDataApi('api/encomenda', {
+      ...encomenda,
+      status: 'retirada',
+      dataRetirada,
+      porteiroRetirada
+    }, encomendaId);
+
+    const historicoResponse = await getDataApi('api/historico');
+    const historicos = Array.isArray(historicoResponse.data) ? historicoResponse.data : [];
+    const historico = historicos.find((item) => String(item.id) === String(encomenda.id));
+    const historicoPayload = {
       id: Number(encomenda.id),
       cod: encomenda.codigo || encomenda.cod || '',
       empresa: encomenda.empresa || '',
       entregador: encomenda.entregador || '',
       morador_nome: encomenda.nomeMorador || encomenda.destinatario || '',
-      porteiro_nome: encomenda.porteiroRegistro || encomenda.porteiroRegistro || 'Admin',
+      porteiro_nome: encomenda.porteiroRegistro || 'Admin',
       retirada_porteiro_nome: porteiroRetirada,
       porteiro_retirada: porteiroRetirada,
       status: 'retirada',
       data_registro: encomenda.dataRegistro || new Date().toISOString(),
       data_retirada: dataRetirada
-    });
-  }
+    };
 
-  renderDashboard();
-  showToast('Retirada registrada com sucesso.', 'success');
+    if (historico) {
+      await sendDataApi('api/historico', historicoPayload, historico.id);
+    } else {
+      await sendDataApi('api/historico', historicoPayload);
+    }
+
+    showToast('Retirada registrada com sucesso.', 'success');
+    await renderDashboard();
+  } catch (error) {
+    showToast(error.message || 'Não foi possível registrar a retirada.', 'error');
+  }
 }
 
-function renderDashboardRecentEncomendas() {
+function renderDashboardRecentEncomendas(encomendas) {
   const tableBody = document.getElementById('dashboardEncomendasTableBody');
 
-  if (!tableBody || !memoryStore) {
+  if (!tableBody) {
     return;
   }
 
-  const encomendas = memoryStore.encomenda.slice(0, 8);
+  encomendas = encomendas.slice(0, 8);
 
   if (encomendas.length === 0) {
     tableBody.innerHTML = `<tr><td colspan="5" class="text-muted">Nenhuma encomenda cadastrada.</td></tr>`;
@@ -126,7 +127,19 @@ function renderDashboardRecentEncomendas() {
   });
 }
 
-function renderDashboard() {
-  renderDashboardStats();
-  renderDashboardRecentEncomendas();
+async function renderDashboard() {
+  try {
+    const [encomendasResponse, moradoresResponse] = await Promise.all([
+      getDataApi('api/encomenda'),
+      getDataApi('api/morador')
+    ]);
+    const encomendas = Array.isArray(encomendasResponse.data) ? encomendasResponse.data : [];
+    const moradores = Array.isArray(moradoresResponse.data) ? moradoresResponse.data : [];
+
+    renderDashboardStats(encomendas, moradores);
+    renderDashboardRecentEncomendas(encomendas);
+  } catch (error) {
+    showToast(error.message || 'Não foi possível carregar o dashboard.', 'error');
+    renderDashboardRecentEncomendas([]);
+  }
 }

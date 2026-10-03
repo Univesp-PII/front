@@ -40,7 +40,7 @@ function statusLabel(status) {
 
 async function getHistoricoData() {
   try {
-    const result = await getDataApi('historico');
+    const result = await getDataApi('api/historico');
     return result.data;
   } catch (error) {
     showToast(error.message || 'Não foi possível buscar o histórico.', 'error');

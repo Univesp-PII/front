@@ -109,7 +109,7 @@ function renderMoradorOptions(form, matches) {
   form.appendChild(container);
 }
 
-function findMoradorBySearch(form) {
+function findMoradorBySearch(form, moradores) {
   const data = new FormData(form);
   const nome = normalizeSearchValue(data.get('destinatario'));
   const bloco = normalizeSearchValue(data.get('bloco'));
@@ -121,7 +121,7 @@ function findMoradorBySearch(form) {
 
   if (nome) {
     const nomeBusca = nome.trim();
-    const matches = memoryStore.morador.filter((item) => {
+    const matches = moradores.filter((item) => {
       const nomeItem = normalizeSearchValue(item.nome || item.nomeMorador);
       const primeiroNome = getFirstName(item.nome || item.nomeMorador);
       return nomeItem === nomeBusca || primeiroNome === nomeBusca || nomeItem.includes(nomeBusca) || primeiroNome.includes(nomeBusca);
@@ -137,7 +137,7 @@ function findMoradorBySearch(form) {
   }
 
   if (bloco && unidade) {
-    return memoryStore.morador.find((item) => {
+    return moradores.find((item) => {
       const blocoItem = normalizeSearchValue(item.bloco || item.blocoMorador);
       const unidadeItem = normalizeSearchValue(item.apartamento || item.unidade);
       return blocoItem === bloco && unidadeItem === unidade;
@@ -163,6 +163,19 @@ function setupEncomendaSearchFlow(form) {
   const destinatarioField = form.querySelector('#destinatario');
   const blocoField = form.querySelector('#bloco');
   const unidadeField = form.querySelector('#unidade');
+  let moradoresPromise;
+
+  const getMoradores = () => {
+    if (!moradoresPromise) {
+      moradoresPromise = getDataApi('api/morador').then((result) => {
+        if (!Array.isArray(result.data)) {
+          throw new Error('A API não retornou uma lista de moradores.');
+        }
+        return result.data;
+      });
+    }
+    return moradoresPromise;
+  };
 
   const packageFields = [codeField, empresaField, entregadorField];
   packageFields.forEach((field) => {
@@ -173,8 +186,14 @@ function setupEncomendaSearchFlow(form) {
     submitButton.disabled = true;
   }
 
-  const resolveMoradorSearch = () => {
-    const result = findMoradorBySearch(form);
+  const resolveMoradorSearch = async () => {
+    let result;
+    try {
+      result = findMoradorBySearch(form, await getMoradores());
+    } catch (error) {
+      showToast(error.message || 'Não foi possível buscar moradores.', 'error');
+      return;
+    }
 
     if (result && result.multiple === true && result.matches && result.matches.length > 1) {
       setMoradorFieldState(form, false);
@@ -232,17 +251,22 @@ function setupEncomendaSearchFlow(form) {
         return;
       }
 
-      const result = findMoradorBySearch(form);
-      if (result && result.multiple === true && result.matches && result.matches.length > 1) {
-        setMoradorFieldState(form, false);
-        renderMoradorOptions(form, result.matches);
-      } else if (result && !result.multiple) {
-        setMoradorFieldState(form, true);
-        clearMoradorOptions(form);
-      } else if (!result && nomeDigitado.length >= 2) {
-        setMoradorFieldState(form, false);
-        clearMoradorOptions(form);
-      }
+      getMoradores().then((moradores) => {
+        if (destinatarioField.value.trim() !== nomeDigitado) return;
+        const result = findMoradorBySearch(form, moradores);
+        if (result && result.multiple === true && result.matches && result.matches.length > 1) {
+          setMoradorFieldState(form, false);
+          renderMoradorOptions(form, result.matches);
+        } else if (result && !result.multiple) {
+          setMoradorFieldState(form, true);
+          clearMoradorOptions(form);
+        } else {
+          setMoradorFieldState(form, false);
+          clearMoradorOptions(form);
+        }
+      }).catch((error) => {
+        showToast(error.message || 'Não foi possível buscar moradores.', 'error');
+      });
     });
   }
 }
@@ -250,7 +274,14 @@ function setupEncomendaSearchFlow(form) {
 async function submitEncomendaForm(form, data) {
   const hiddenMoradorId = String(data.get('moradorId') || '').trim();
 
-  const moradorEncontrado = memoryStore.morador.find((item) => String(item.id) === hiddenMoradorId);
+  let moradorEncontrado;
+  try {
+    const result = await getDataApi('api/morador', hiddenMoradorId);
+    moradorEncontrado = result.data;
+  } catch (error) {
+    showToast(error.message || 'Não foi possível buscar o morador.', 'error');
+    return;
+  }
 
   if (!moradorEncontrado) {
     showToast('Morador não encontrado. Cadastre o morador antes da encomenda.', 'error');
@@ -281,9 +312,9 @@ async function submitEncomendaForm(form, data) {
       porteiroRetirada: ''
     };
 
-    const result = await sendDataApi('encomenda', payload);
+    const result = await sendDataApi('api/encomenda', payload);
 
-    await sendDataApi('historico', {
+    await sendDataApi('api/historico', {
       id: Number(result.data.id || Date.now()),
       cod: payload.codigo,
       empresa: payload.empresa,

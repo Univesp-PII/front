@@ -1,6 +1,6 @@
 async function submitPorteiroForm(form, data) {
   try {
-    const result = await sendDataApi("porteiro", {
+    const result = await sendDataApi("api/porteiro", {
       nomePorteiro: String(data.get("nomePorteiro")).trim(),
       emailPorteiro: String(data.get("emailPorteiro")).trim().toLowerCase(),
       senhaPorteiro: String(data.get("senhaPorteiro")).trim(),
