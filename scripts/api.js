@@ -1,5 +1,5 @@
 const apiConfig = {
-  baseUrl: 'http://localhost:8000',
+  baseUrl: 'https://back-receba-2.onrender.com',
   defaultHeaders: {
     'Content-Type': 'application/json'
   }
