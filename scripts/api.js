@@ -28,6 +28,11 @@ const apiService = {
     const id = options.id ?? null;
     const body = options.body ?? null;
     const headers = { ...(apiConfig.defaultHeaders || {}), ...(options.headers || {}) };
+    const loggedUser = root.sessionStorage?.getItem('recebaUser');
+
+    if (loggedUser) {
+      headers['X-User-Name'] = loggedUser;
+    }
 
     const url = new URL(`${apiConfig.baseUrl.replace(/\/+$/, '')}/${resource}${id !== null && id !== undefined ? `/${id}` : ''}`);
 
