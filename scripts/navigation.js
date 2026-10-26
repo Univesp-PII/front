@@ -90,6 +90,12 @@ async function renderView(viewName) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  if (!sessionStorage.getItem('recebaToken')) {
+    sessionStorage.removeItem('recebaUser');
+    window.location.replace('../index.html');
+    return;
+  }
+
   updateCurrentUserDisplay();
 
   const links = document.querySelectorAll('.sidebar-link');
@@ -103,6 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const logoutButton = document.getElementById('logoutButton');
   if (logoutButton) {
     logoutButton.addEventListener('click', () => {
+      sessionStorage.removeItem('recebaToken');
       sessionStorage.removeItem('recebaUser');
       window.location.href = '../index.html';
     });

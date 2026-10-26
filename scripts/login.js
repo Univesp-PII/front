@@ -13,10 +13,16 @@ async function handleLogin(event) {
       password: passwordInput.value
     });
 
-    const user = response?.data?.user || response?.user || response?.data || response;
+    const token = response?.token;
+    const user = response?.user;
+    if (!token || !user) {
+      throw new Error('A API não retornou os dados de autenticação esperados.');
+    }
+
     const loggedUser =
       user?.nome || user?.name || user?.nomePorteiro || user?.email || emailInput.value.trim();
 
+    sessionStorage.setItem('recebaToken', token);
     sessionStorage.setItem("recebaUser", loggedUser);
     showToast("Login realizado com sucesso.", "success");
 
