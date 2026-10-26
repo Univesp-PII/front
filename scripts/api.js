@@ -11,6 +11,16 @@ function normalizeEndpoint(endpoint) {
   return String(endpoint || '').replace(/^\/+|\/+$/g, '');
 }
 
+function clearAuthAndRedirect() {
+  root.sessionStorage?.removeItem('recebaToken');
+  root.sessionStorage?.removeItem('recebaUser');
+
+  if (root.location) {
+    const loginPath = root.location.pathname.includes('/pages/') ? '../index.html' : './index.html';
+    root.location.href = loginPath;
+  }
+}
+
 const apiService = {
   config: apiConfig,
 
@@ -28,10 +38,11 @@ const apiService = {
     const id = options.id ?? null;
     const body = options.body ?? null;
     const headers = { ...(apiConfig.defaultHeaders || {}), ...(options.headers || {}) };
-    const loggedUser = root.sessionStorage?.getItem('recebaUser');
+    const isLoginRequest = resource === 'api/auth/login';
+    const token = root.sessionStorage?.getItem('recebaToken');
 
-    if (loggedUser) {
-      headers['X-User-Name'] = loggedUser;
+    if (token && !isLoginRequest) {
+      headers.Authorization = `Bearer ${token}`;
     }
 
     const url = new URL(`${apiConfig.baseUrl.replace(/\/+$/, '')}/${resource}${id !== null && id !== undefined ? `/${id}` : ''}`);
@@ -46,6 +57,10 @@ const apiService = {
     }
 
     const response = await fetch(url, requestOptions);
+
+    if (response.status === 401 && !isLoginRequest) {
+      clearAuthAndRedirect();
+    }
 
     if (!response.ok) {
       let message = `Falha ao acessar ${resource}: ${response.status}`;
