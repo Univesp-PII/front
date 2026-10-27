@@ -57,7 +57,7 @@ function updateCurrentUserDisplay() {
   currentUser.textContent = 'Admin';
 }
 
-async function renderView(viewName) {
+async function renderView(viewName, moveFocus = false) {
   const appContent = document.getElementById('appContent');
   const links = document.querySelectorAll('.sidebar-link');
 
@@ -76,7 +76,20 @@ async function renderView(viewName) {
   links.forEach((link) => {
     const isActive = link.dataset.view === viewName;
     link.classList.toggle('active', isActive);
+    if (isActive) {
+      link.setAttribute('aria-current', 'page');
+    } else {
+      link.removeAttribute('aria-current');
+    }
   });
+
+  if (moveFocus) {
+    const pageHeading = appContent.querySelector('.page-header h2');
+    if (pageHeading) {
+      pageHeading.tabIndex = -1;
+      pageHeading.focus({ preventScroll: true });
+    }
+  }
 
   attachAppFormHandlers();
 
@@ -102,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   links.forEach((link) => {
     link.addEventListener('click', () => {
-      renderView(link.dataset.view);
+      renderView(link.dataset.view, true);
     });
   });
 

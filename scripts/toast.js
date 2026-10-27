@@ -17,7 +17,9 @@ function showToast(message, type = "success") {
   const safeType = type === "error" ? "error" : "success";
 
   toast.className = `toast-card ${safeType}`;
-  toast.setAttribute("role", "alert");
+  toast.setAttribute("role", safeType === "error" ? "alert" : "status");
+  toast.setAttribute("aria-live", safeType === "error" ? "assertive" : "polite");
+  toast.setAttribute("aria-atomic", "true");
 
   const icon = document.createElement("span");
   icon.className = "toast-icon";
@@ -27,7 +29,8 @@ function showToast(message, type = "success") {
   content.className = "toast-message";
   content.textContent = message;
 
-  const close = document.createElement("span");
+  const close = document.createElement("button");
+  close.type = "button";
   close.className = "toast-close";
   close.setAttribute("aria-label", "Fechar");
   close.textContent = "×";
