@@ -20,7 +20,9 @@
 </head>
 
 <body class="has-sidebar">
-  <nav class="navbar navbar-expand-md navbar-dark fixed-top">
+  <a class="skip-link" href="#mainContent">Pular para o conteúdo</a>
+
+  <nav class="navbar navbar-expand-md navbar-dark fixed-top" aria-label="Barra superior">
     <a class="navbar-brand" href="#">
       <i class="bi bi-box-seam mr-2"></i><strong>Receba</strong>
     </a>
@@ -44,7 +46,7 @@
       <h5>Menu</h5>
     </div>
 
-    <div class="sidebar-menu">
+    <nav class="sidebar-menu" aria-label="Navegação principal">
       <button type="button" class="sidebar-link active" data-view="dashboard">
         <i class="bi bi-speedometer2 mr-2"></i>Dashboard
       </button>
@@ -60,10 +62,10 @@
       <button type="button" class="sidebar-link" data-view="historico">
         <i class="bi bi-clock-history mr-2"></i>Histórico
       </button>
-    </div>
+    </nav>
   </aside>
 
-  <main class="dashboard-main">
+  <main id="mainContent" class="dashboard-main" tabindex="-1">
     <div class="container-fluid">
       <div id="appContent" class="content-area"></div>
     </div>
