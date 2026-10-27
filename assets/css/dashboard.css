@@ -26,6 +26,31 @@
   width: 100%;
 }
 
+.page-loading {
+  min-height: 12rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.page-loading-spinner {
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 3px solid var(--border-light);
+  border-top-color: var(--secondary-color);
+  border-radius: 50%;
+  animation: page-loading-spin 0.8s linear infinite;
+}
+
+@keyframes page-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .sidebar {
   position: fixed;
   top: 72px;
