@@ -6,6 +6,8 @@ const viewMap = {
   historico: '../pages/historico.html'
 };
 
+let currentViewRequest = 0;
+
 function attachAppFormHandlers() {
   const forms = document.querySelectorAll('form[data-form-name]');
 
@@ -15,6 +17,7 @@ function attachAppFormHandlers() {
     }
 
     form.dataset.bound = 'true';
+    setupAccessibleFormValidation(form);
     const formName = form.dataset.formName;
 
     if (formName === 'encomenda') {
@@ -63,15 +66,24 @@ async function renderView(viewName, moveFocus = false) {
 
   if (!appContent) return;
 
+  const requestId = ++currentViewRequest;
   const file = viewMap[viewName] || viewMap.dashboard;
+  appContent.setAttribute('aria-busy', 'true');
+  appContent.innerHTML = '<div class="page-loading" role="status" aria-live="polite"><span class="page-loading-spinner" aria-hidden="true"></span><span>Carregando...</span></div>';
 
   try {
     const response = await fetch(file);
     if (!response.ok) throw new Error('Erro ao carregar view');
-    appContent.innerHTML = await response.text();
+    const content = await response.text();
+    if (requestId !== currentViewRequest) return;
+    appContent.innerHTML = content;
   } catch (error) {
+    if (requestId !== currentViewRequest) return;
     appContent.innerHTML = '<div class="alert alert-danger">Não foi possível carregar a tela.</div>';
   }
+
+  if (requestId !== currentViewRequest) return;
+  appContent.removeAttribute('aria-busy');
 
   links.forEach((link) => {
     const isActive = link.dataset.view === viewName;

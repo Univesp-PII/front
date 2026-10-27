@@ -19,20 +19,47 @@ body {
   outline-offset: 3px;
 }
 
-.skip-link {
-  position: fixed;
-  top: 0.75rem;
-  left: 0.75rem;
-  z-index: 3000;
-  padding: 0.75rem 1rem;
-  background: #fff;
-  color: var(--primary-color);
-  border: 2px solid currentColor;
-  transform: translateY(-180%);
+.form-control[aria-invalid="true"] {
+  border-color: #b02a37;
 }
 
-.skip-link:focus {
-  transform: translateY(0);
+.field-error {
+  display: block;
+  margin-top: 0.25rem;
+  color: #b02a37;
+  font-size: 0.875rem;
+}
+
+.api-loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 4000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  background: rgba(248, 250, 255, 0.78);
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.api-loading-overlay[hidden] {
+  display: none;
+}
+
+.api-loading-spinner {
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 3px solid var(--border-light);
+  border-top-color: var(--secondary-color);
+  border-radius: 50%;
+  animation: api-loading-spin 0.8s linear infinite;
+}
+
+@keyframes api-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .toast-stack {

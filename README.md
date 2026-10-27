@@ -27,15 +27,15 @@ A aplicação depende de uma API e de um banco de dados ativos. Para avaliar o s
 
 ## Acessibilidade
 
-O sistema oferece recursos básicos para diferentes formas de navegação:
+O sistema inclui recursos para facilitar o uso por teclado e ajudar a entender os formulários:
 
-- Conteúdo identificado em português do Brasil, com rótulos associados aos campos dos formulários.
-- Navegação por teclado, indicador de foco e atalho para pular diretamente ao conteúdo principal.
-- Anúncio acessível de mensagens de sucesso e erro, com botão de fechar utilizável pelo teclado.
-- Foco direcionado ao título ao mudar de tela.
-- Redução de animações quando essa preferência está ativada no dispositivo.
+- Os campos têm rótulos que indicam o que deve ser preenchido.
+- É possível percorrer menus, campos e botões usando a tecla `Tab`; o item em foco fica destacado.
+- Ao deixar um campo obrigatório vazio ou informar um email em formato inválido, aparece uma explicação junto ao campo e o foco vai até o primeiro erro.
+- Mensagens de sucesso e erro são apresentadas na tela e podem ser percebidas por tecnologias assistivas.
+- As animações são reduzidas quando essa preferência está ativada no dispositivo.
 
-Esses recursos são uma base de acessibilidade, não uma certificação. Para uma avaliação completa, recomenda-se testar com leitor de tela e ferramentas como Lighthouse ou axe.
+Esses recursos são melhorias básicas para tornar o sistema mais fácil de usar. Eles não representam uma certificação de acessibilidade.
 
 ## Informações técnicas
 

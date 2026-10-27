@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const loginForm = document.getElementById('loginForm');
 
   if (loginForm) {
+    setupAccessibleFormValidation(loginForm);
     loginForm.addEventListener('submit', handleLogin);
     return;
   }

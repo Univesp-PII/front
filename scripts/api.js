@@ -6,6 +6,46 @@ const apiConfig = {
 };
 
 const root = typeof window !== 'undefined' ? window : globalThis;
+let activeApiRequests = 0;
+let loadingStartedAt = 0;
+let loadingHideTimeout = null;
+
+function showApiLoading() {
+  activeApiRequests += 1;
+  clearTimeout(loadingHideTimeout);
+
+  if (activeApiRequests !== 1 || typeof document === 'undefined') return;
+
+  let overlay = document.getElementById('apiLoadingOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'apiLoadingOverlay';
+    overlay.className = 'api-loading-overlay';
+    overlay.setAttribute('role', 'status');
+    overlay.setAttribute('aria-live', 'polite');
+    overlay.setAttribute('aria-atomic', 'true');
+    overlay.innerHTML = '<span class="api-loading-spinner" aria-hidden="true"></span><span>Carregando...</span>';
+    document.body.appendChild(overlay);
+  }
+
+  loadingStartedAt = Date.now();
+  overlay.hidden = false;
+  document.body.setAttribute('aria-busy', 'true');
+}
+
+function hideApiLoading() {
+  activeApiRequests = Math.max(0, activeApiRequests - 1);
+  if (activeApiRequests !== 0 || typeof document === 'undefined') return;
+
+  const remainingTime = Math.max(0, 250 - (Date.now() - loadingStartedAt));
+  loadingHideTimeout = setTimeout(() => {
+    if (activeApiRequests !== 0) return;
+
+    const overlay = document.getElementById('apiLoadingOverlay');
+    if (overlay) overlay.hidden = true;
+    document.body.removeAttribute('aria-busy');
+  }, remainingTime);
+}
 
 function normalizeEndpoint(endpoint) {
   return String(endpoint || '').replace(/^\/+|\/+$/g, '');
@@ -56,26 +96,31 @@ const apiService = {
       requestOptions.body = JSON.stringify(body);
     }
 
-    const response = await fetch(url, requestOptions);
+    showApiLoading();
+    try {
+      const response = await fetch(url, requestOptions);
 
-    if (response.status === 401 && !isLoginRequest) {
-      clearAuthAndRedirect();
+      if (response.status === 401 && !isLoginRequest) {
+        clearAuthAndRedirect();
+      }
+
+      if (!response.ok) {
+        let message = `Falha ao acessar ${resource}: ${response.status}`;
+        try {
+          const errorData = await response.json();
+          message = errorData?.message || errorData?.error || message;
+        } catch {}
+        throw new Error(message);
+      }
+
+      if (response.status === 204) {
+        return null;
+      }
+
+      return response.json();
+    } finally {
+      hideApiLoading();
     }
-
-    if (!response.ok) {
-      let message = `Falha ao acessar ${resource}: ${response.status}`;
-      try {
-        const errorData = await response.json();
-        message = errorData?.message || errorData?.error || message;
-      } catch {}
-      throw new Error(message);
-    }
-
-    if (response.status === 204) {
-      return null;
-    }
-
-    return response.json();
   },
 
   async get(endpoint, id = null) {
